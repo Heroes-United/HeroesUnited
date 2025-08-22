@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -42,12 +43,10 @@ class ClothesAccessory extends GeckoAccessory {
         consumer.accept(new IClientItemExtensions() {
             private final BlockEntityWithoutLevelRenderer renderer = new GeckoAccessoryRenderer() {
 
-                @SuppressWarnings("unchecked")
                 @Override
-                public void defaultRender(PoseStack poseStack, GeckoAccessory animatable, MultiBufferSource bufferSource, @Nullable RenderType renderType, @Nullable VertexConsumer buffer, float yaw, float partialTick, int packedLight) {
-                    BakedGeoModel geoModel = this.model.getBakedModel(this.model.getModelResource(animatable));
+                public void actuallyRender(PoseStack poseStack, GeckoAccessory animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
 
-                    for (GeoBone topLevelBone : geoModel.topLevelBones()) {
+                    for (GeoBone topLevelBone : model.topLevelBones()) {
                         topLevelBone.setHidden(true);
                     }
 
@@ -75,7 +74,7 @@ class ClothesAccessory extends GeckoAccessory {
                         model.getBone("right_leg_boots").ifPresent(b -> b.setHidden(false));
                         model.getBone("left_leg_boots").ifPresent(b -> b.setHidden(false));
                     }
-                    super.defaultRender(poseStack, animatable, bufferSource, renderType, buffer, yaw, partialTick, packedLight);
+                    super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
                 }
             };
 
@@ -125,13 +124,16 @@ class ClothesAccessory extends GeckoAccessory {
             }
             if (iBone.getName().contains("left_leg")) {
                 RenderUtils.matchModelPartRot(renderer.getModel().leftLeg, iBone);
-                iBone.updatePosition(renderer.getModel().leftLeg.x + 2, 12 - renderer.getModel().leftLeg.y, renderer.getModel().leftLeg.z);
+                iBone.updatePosition(renderer.getModel().leftLeg.x - 2, 12 - renderer.getModel().leftLeg.y, renderer.getModel().leftLeg.z);
             }
         }
 
+
         RenderType type = RenderType.entityTranslucent(this.getTextureFile());
-        accessoryRenderer.defaultRender(poseStack, this, bufferIn, type, bufferIn.getBuffer(type),
-                0, Minecraft.getInstance().getFrameTime(), packedLightIn);
+
+        accessoryRenderer.setInitialProperties(stack);
+        accessoryRenderer.actuallyRender(poseStack, (GeckoAccessory) stack.getItem(), model, type,
+                bufferIn, bufferIn.getBuffer(type), false, partialTicks, packedLightIn, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0D, -24 / 16F, 0.0D);

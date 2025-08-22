@@ -24,6 +24,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.registries.ForgeRegistries;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -82,7 +83,7 @@ public class GeckoAccessory extends DefaultAccessoryItem implements GeoItem {
             poseStack.pushPose();
             poseStack.translate(0.0D, 24 / 16F, 0.0D);
             poseStack.scale(-1.0F, -1.0F, 1.0F);
-            renderHokageCape(renderer, poseStack, bufferIn, packedLightIn, livingEntity, partialTicks);
+            this.renderHokageCape(renderer, poseStack, bufferIn, packedLightIn, livingEntity, partialTicks, stack);
             poseStack.popPose();
             return;
         }
@@ -149,25 +150,33 @@ public class GeckoAccessory extends DefaultAccessoryItem implements GeoItem {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void renderHokageCape(LivingEntityRenderer<? extends LivingEntity, ? extends HumanoidModel<?>> renderer, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn, LivingEntity livingEntity, float partialTicks) {
+    public void renderHokageCape(LivingEntityRenderer<? extends LivingEntity, ? extends HumanoidModel<?>> renderer, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn, LivingEntity livingEntity, float partialTicks, ItemStack stack) {
         GeckoAccessoryRenderer accessoryRenderer = new GeckoAccessoryRenderer();
-        GeoModel<GeckoAccessory> model = accessoryRenderer.getGeoModel();
+        BakedGeoModel model = accessoryRenderer.getGeoModel().getBakedModel(getModelFile());
 
-        GeoBone headBone = model.getBone("armorHead").get();
-        RenderUtils.matchModelPartRot(renderer.getModel().head, headBone);
-        headBone.updatePosition(renderer.getModel().head.x, -renderer.getModel().head.y, renderer.getModel().head.z);
+        GeoBone headBone = model.getBone("armorHead").orElse(null);
+        if (headBone != null) {
+            RenderUtils.matchModelPartRot(renderer.getModel().head, headBone);
+            headBone.updatePosition(renderer.getModel().head.x, -renderer.getModel().head.y, renderer.getModel().head.z);
+        }
 
-        GeoBone bodyBone = model.getBone("armorBody").get();
-        RenderUtils.matchModelPartRot(renderer.getModel().body, bodyBone);
-        bodyBone.updatePosition(renderer.getModel().body.x, -renderer.getModel().body.y, renderer.getModel().body.z);
+        GeoBone bodyBone = model.getBone("armorBody").orElse(null);
+        if (bodyBone != null) {
+            RenderUtils.matchModelPartRot(renderer.getModel().body, bodyBone);
+            bodyBone.updatePosition(renderer.getModel().body.x, -renderer.getModel().body.y, renderer.getModel().body.z);
+        }
 
-        GeoBone rightArmBone = model.getBone("armorRightArm").get();
-        RenderUtils.matchModelPartRot(renderer.getModel().rightArm, rightArmBone);
-        rightArmBone.updatePosition(renderer.getModel().rightArm.x + 5, 2 - renderer.getModel().rightArm.y, renderer.getModel().rightArm.z);
+        GeoBone rightArmBone = model.getBone("armorRightArm").orElse(null);
+        if (rightArmBone != null) {
+            RenderUtils.matchModelPartRot(renderer.getModel().rightArm, rightArmBone);
+            rightArmBone.updatePosition(renderer.getModel().rightArm.x + 5, 2 - renderer.getModel().rightArm.y, renderer.getModel().rightArm.z);
+        }
 
-        GeoBone leftArmBone = model.getBone("armorLeftArm").get();
-        RenderUtils.matchModelPartRot(renderer.getModel().leftArm, leftArmBone);
-        leftArmBone.updatePosition(renderer.getModel().leftArm.x - 5, 2 - renderer.getModel().leftArm.y, renderer.getModel().leftArm.z);
+        GeoBone leftArmBone = model.getBone("armorLeftArm").orElse(null);
+        if (leftArmBone != null) {
+            RenderUtils.matchModelPartRot(renderer.getModel().leftArm, leftArmBone);
+            leftArmBone.updatePosition(renderer.getModel().leftArm.x - 5, 2 - renderer.getModel().leftArm.y, renderer.getModel().leftArm.z);
+        }
 
         if (livingEntity instanceof AbstractClientPlayer player) {
             double d0 = Mth.lerp(partialTicks, player.xCloakO, player.xCloak) - Mth.lerp(partialTicks, player.xo, player.getX());
@@ -181,33 +190,43 @@ public class GeckoAccessory extends DefaultAccessoryItem implements GeoItem {
 
             f1 = f1 + Mth.sin(Mth.lerp(partialTicks, player.walkDistO, player.walkDist) * 6.0F) * 32.0F * Mth.lerp(partialTicks, player.oBob, player.bob);
 
-            GeoBone cape = model.getBone("cape").get();
+            GeoBone cape = model.getBone("cape").orElse(null);
             float rot = Mth.clamp(f2 + f1, 0F, 80F);
-            cape.setRotX((float) Math.toRadians(-rot));
-            cape.setPosY(0);
-            cape.setPosZ(0);
+            if (cape != null) {
+                cape.setRotX((float) Math.toRadians(-rot));
+                cape.setPosY(0);
+                cape.setPosZ(0);
+                if (player.isCrouching()) {
+                    cape.setRotX(0.5F + cape.getRotX());
+                    cape.setPosY(2.2F);
+                    cape.setPosZ(-1F);
+                }
+            }
             rot = 0.15F + rot / 80F;
             if (player.isCrouching()) {
-                cape.setRotX(0.5F + cape.getRotX());
-                cape.setPosY(2.2F);
-                cape.setPosZ(-1F);
                 rot += 0.15F;
             }
 
-            GeoBone right = model.getBone("right").get();
-            right.setRotX(rot * (float) Math.toRadians(-9.5));
-            right.setRotY(rot * (float) Math.toRadians(-59));
-            right.setRotZ(rot * (float) Math.toRadians(8.8));
+            GeoBone right = model.getBone("right").orElse(null);
+            if (right != null) {
+                right.setRotX(rot * (float) Math.toRadians(-9.5));
+                right.setRotY(rot * (float) Math.toRadians(-59));
+                right.setRotZ(rot * (float) Math.toRadians(8.8));
+            }
 
-            GeoBone left = model.getBone("left").get();
-            left.setRotX(rot * (float) Math.toRadians(-9.5));
-            left.setRotY(rot * (float) Math.toRadians(59));
-            left.setRotZ(rot * (float) Math.toRadians(-8.8));
+            GeoBone left = model.getBone("left").orElse(null);
+            if (left != null) {
+                left.setRotX(rot * (float) Math.toRadians(-9.5));
+                left.setRotY(rot * (float) Math.toRadians(59));
+                left.setRotZ(rot * (float) Math.toRadians(-8.8));
+            }
         }
 
-        RenderType renderType = RenderType.entityTranslucent(this.getTextureFile());
-        accessoryRenderer.defaultRender(poseStack, this, bufferIn, renderType, bufferIn.getBuffer(renderType),
-                0, partialTicks, packedLightIn);
+
+        RenderType type = RenderType.entityTranslucent(this.getTextureFile());
+        accessoryRenderer.setInitialProperties(stack);
+        accessoryRenderer.actuallyRender(poseStack, (GeckoAccessory) stack.getItem(), model, type,
+                bufferIn, bufferIn.getBuffer(type), false, partialTicks, packedLightIn, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 
     }
 

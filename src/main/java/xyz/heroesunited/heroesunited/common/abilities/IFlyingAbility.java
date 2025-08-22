@@ -13,7 +13,9 @@ public interface IFlyingAbility {
         return (Ability) this;
     }
 
-    boolean isFlying(Player player);
+    default boolean isFlying(Player player) {
+        return ability().getEnabled();
+    }
 
     default boolean renderFlying(Player player) {
         return GsonHelper.getAsBoolean(this.ability().getJsonObject(), "render", true);

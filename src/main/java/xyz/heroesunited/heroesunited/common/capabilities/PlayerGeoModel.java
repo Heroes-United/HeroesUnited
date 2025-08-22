@@ -51,6 +51,11 @@ public class PlayerGeoModel extends DefaultedGeoModel<IHUPlayer> {
         super.setCustomAnimations(entity, instanceId, customPredicate);
     }
 
+    @Override
+    public boolean crashIfBoneMissing() {
+        return false;
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void applyMolangQueries(IHUPlayer animatable, double animTime) {

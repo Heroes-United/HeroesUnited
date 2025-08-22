@@ -19,27 +19,6 @@ public class FlightAbility extends JSONAbility implements IFlyingAbility {
     }
 
     @Override
-    public boolean isFlying(Player player) {
-        return this.getEnabled();
-    }
-
-    @Override
-    public void onDataUpdated(HUData<?> data) {
-        super.onDataUpdated(data);
-        if (data.getKey().equals("enabled") && ((boolean) data.getValue())) {
-            if (this.player instanceof LocalPlayer localPlayer) {
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> new Runnable() {
-                    @OnlyIn(Dist.CLIENT)
-                    @Override
-                    public void run() {
-                        Minecraft.getInstance().getSoundManager().play(new FlyingSoundInstance(FlightAbility.this.getSoundEvent(), localPlayer));
-                    }
-                });
-            }
-        }
-    }
-
-    @Override
     public SoundEvent getSoundEvent() {
         return SoundEvents.ELYTRA_FLYING;
     }

@@ -1,6 +1,8 @@
 package xyz.heroesunited.heroesunited.common.abilities;
 
 import com.google.gson.JsonObject;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -8,8 +10,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkDirection;
 import xyz.heroesunited.heroesunited.common.capabilities.ability.HUAbilityCap;
@@ -17,6 +21,7 @@ import xyz.heroesunited.heroesunited.common.events.AbilityEvent;
 import xyz.heroesunited.heroesunited.common.events.EntitySprintingEvent;
 import xyz.heroesunited.heroesunited.common.networking.HUNetworking;
 import xyz.heroesunited.heroesunited.common.networking.client.ClientSyncAbility;
+import xyz.heroesunited.heroesunited.util.FlyingSoundInstance;
 import xyz.heroesunited.heroesunited.util.HUJsonUtils;
 import xyz.heroesunited.heroesunited.util.hudata.HUData;
 import xyz.heroesunited.heroesunited.util.hudata.HUDataManager;
@@ -77,6 +82,17 @@ public abstract class Ability implements INBTSerializable<CompoundTag> {
     }
 
     public void onDataUpdated(HUData<?> data) {
+        if (this.player instanceof LocalPlayer localPlayer && this instanceof IFlyingAbility a) {
+            if (data.getKey().equals("enabled") && ((boolean) data.getValue())) {
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> new Runnable() {
+                    @OnlyIn(Dist.CLIENT)
+                    @Override
+                    public void run() {
+                        Minecraft.getInstance().getSoundManager().play(new FlyingSoundInstance(a.getSoundEvent(), localPlayer));
+                    }
+                });
+            }
+        }
     }
 
     @Nullable
