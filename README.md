@@ -3,8 +3,8 @@
 
 A Minecraft mod series for Forge 1.16+
 
-[![](https://cf.way2muchnoise.eu/full_386012_downloads.svg)](https://www.curseforge.com/minecraft/mc-mods/heroes-united)
-[![](https://cf.way2muchnoise.eu/versions/386012.svg)](https://www.curseforge.com/minecraft/mc-mods/heroes-united)
+[![](https://cf.way2muchnoise.eu/full_386012_downloads.svg?badge_style=for_the_badge)](https://www.curseforge.com/minecraft/mc-mods/heroes-united)
+[![](https://cf.way2muchnoise.eu/versions/386012.svg?badge_style=for_the_badge)](https://www.curseforge.com/minecraft/mc-mods/heroes-united)
 [![](https://forthebadge.com/images/badges/built-by-developers.svg)](https://forthebadge.com)
 [![](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 [![](https://forthebadge.com/images/badges/made-with-java.svg)](https://forthebadge.com)
